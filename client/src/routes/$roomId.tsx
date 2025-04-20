@@ -1,5 +1,5 @@
-import {createFileRoute, Navigate, useNavigate} from '@tanstack/react-router'
-import {useContext, useEffect} from "react";
+import {createFileRoute, Navigate} from '@tanstack/react-router'
+import {useContext} from "react";
 import {GameContext} from "@/routes/__root";
 import {SocketController} from "@/store/socket-controller.ts";
 import {GameStore} from "@/store/game.ts";

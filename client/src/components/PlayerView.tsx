@@ -2,7 +2,6 @@ import {useEffect, useState} from "react";
 import {observer} from "mobx-react-lite";
 import {Player} from "@/store/game.ts";
 import { useDebounce } from "use-debounce";
-import {Input} from "@/components/ui/input.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {X} from "lucide-react";

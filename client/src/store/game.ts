@@ -1,12 +1,11 @@
 import type {
-    TEvent,
     TEventConnect,
     TEventEditGameName,
     TEventJoin,
     TEventLeave,
     TEventSync,
     TPlayer
-} from "../../party/types";
+} from "@/store/types";
 import { makeAutoObservable } from "mobx"
 import {TEventEditMyName, TEventSpectator} from "@/store/types.ts";
 
@@ -59,7 +58,7 @@ export class GameStore {
 
     onSync(event: TEventSync) {
         console.log(event.game)
-        this.players = event.game.players.map((player) => Player.fromTPlayer(player))
+        this.players = event.game.players.map((player: TPlayer) => Player.fromTPlayer(player))
         this.turnPlayerId = event.game.turnPlayerId
     }
 
