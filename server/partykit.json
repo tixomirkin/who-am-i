@@ -1,0 +1,6 @@
+{
+  "$schema": "https://www.partykit.io/schema.json",
+  "name": "who-am-i",
+  "main": "party/server.ts",
+  "compatibilityDate": "2025-04-16",
+}
