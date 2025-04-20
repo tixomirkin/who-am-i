@@ -1,12 +1,13 @@
 import type {
+    TEvent,
     TEventConnect,
     TEventEditGameName,
     TEventJoin,
     TEventLeave,
     TEventSync,
-    TPlayer, TEventEditMyAvatar, TEventSetAdmin, TEventSetTurn
+    TPlayer
 } from "@/store/types";
-import { makeAutoObservable, runInAction } from "mobx"
+import { makeAutoObservable } from "mobx"
 import {TEventEditMyName, TEventSpectator} from "@/store/types.ts";
 
 export class Player {
@@ -16,7 +17,6 @@ export class Player {
     description: string = '';
     isAdmin: boolean = false;
     isSpectator: boolean = true;
-    avatar: string | null = null;
 
 
     constructor(id: string) {
@@ -31,17 +31,15 @@ export class Player {
         player.description = fromPlayer.description
         player.isAdmin = fromPlayer.isAdmin
         player.isSpectator = fromPlayer.isSpectator
-        player.avatar = fromPlayer.avatar
         return player
     }
 
     setId(id: string) { this.id = id; }
     setName(name: string) { this.name = name; }
-    setGameName(gameName: string) { this.gameName = gameName; }
+    setGameName(gameName: string) { console.log( 'asas',gameName); this.gameName = gameName; }
     setDescription(description: string) { this.description = description; }
     setIsAdmin(isAdmin: boolean) { this.isAdmin = isAdmin; }
     setIsSpectator(isSpectator: boolean) { this.isSpectator = isSpectator; }
-    setAvatar(avatar: string | null) { this.avatar = avatar; }
 
 
 }
@@ -60,11 +58,9 @@ export class GameStore {
     }
 
     onSync(event: TEventSync) {
-        runInAction(() => {
-            console.log(this.myId)
-            this.players = event.game.players.map((player: TPlayer) => Player.fromTPlayer(player))
-            this.turnPlayerId = event.game.turnPlayerId
-        })
+        console.log(event.game)
+        this.players = event.game.players.map((player: TPlayer) => Player.fromTPlayer(player))
+        this.turnPlayerId = event.game.turnPlayerId
     }
 
     onConnect(event: TEventConnect) {
@@ -104,25 +100,6 @@ export class GameStore {
         if (player) {
             player.setName(event.newName)
         }
-    }
-
-    onEditAvatar(event: TEventEditMyAvatar) {
-        const player = this.players.find((player) => player.id === event.id)
-        if (player) {
-            player.setAvatar(event.avatar)
-        }
-    }
-
-    onSetAdmin(event: TEventSetAdmin) {
-        this.players.forEach((player) => {
-            if (player.isAdmin) player.setIsAdmin(false)
-            if (player.id == event.id) player.setIsAdmin(true)
-        })
-    }
-
-    onSetTurn(event: TEventSetTurn) {
-        console.log('onSetTurn', event)
-        this.turnPlayerId = event.id
     }
 
 }

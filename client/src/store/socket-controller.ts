@@ -1,10 +1,10 @@
 import type {
     TEvent,
-    TEventEditGameName, TEventEditMyAvatar, TEventEditMyName, TEventGetSync,
-    TEventJoin, TEventSpectator, TEventEntTurn, TEventSetAdmin
+    TEventEditGameName, TEventEditMyName, TEventGetSync,
+    TEventJoin, TEventSpectator,
 } from "@/store/types";
 import PartySocket from "partysocket";
-// import usePartySocket from "partysocket/react";
+import usePartySocket from "partysocket/react";
 import {GameStore} from "@/store/game.ts";
 
 export class SocketController {
@@ -15,21 +15,15 @@ export class SocketController {
         const myId = localStorage.getItem("socket_id");
 
         this.gameStore = gameStore;
-        this.socket = new PartySocket({
-            host: import.meta.env.VITE_PARTY_KIT_DOMAIN,
+        this.socket = usePartySocket({
+            host: 'who-am-i.tixomirkin.partykit.dev',
+            // host: 'localhost:1999',
             room: room,
             id: myId ? myId : undefined,
-        })
-        this.socket.addEventListener("connect", () => this.gameStore.setMyId(this.socket.id))
-        this.socket.addEventListener('message', (event: MessageEvent) => this.onMessage(event))
-        // this.socket = usePartySocket({
-        //     host: import.meta.env.VITE_PARTY_KIT_DOMAIN,
-        //     room: room,
-        //     id: myId ? myId : undefined,
-        //
-        //     onMessage: (event) => this.onMessage(event),
-        //     onOpen: () => this.gameStore.setMyId(this.socket.id)
-        // });
+
+            onMessage: (event) => this.onMessage(event),
+            onOpen: () => this.gameStore.setMyId(this.socket.id)
+        });
 
         localStorage.setItem("socket_id", this.socket.id);
     }
@@ -58,33 +52,10 @@ export class SocketController {
         if (event.type == 'leave') {
             this.gameStore.onLeave(event)
         }
-        if (event.type == 'edit_my_avatar') {
-            this.gameStore.onEditAvatar(event)
-        }
-        if (event.type == 'set_admin') {
-            this.gameStore.onSetAdmin(event)
-        }
-        if (event.type == 'set_turn') {
-            this.gameStore.onSetTurn(event)
-        }
-    }
-
-    sendSetAdmin(id: string) {
-        const event: TEventSetAdmin = {
-            type: "set_admin",
-            id: id,
-        }
-        this.socket.send(JSON.stringify(event))
-    }
-
-    sendEndTurn() {
-        const event: TEventEntTurn = {
-            type: "end_turn"
-        }
-        this.socket.send(JSON.stringify(event));
     }
 
     sendEditGameName(toId: string, newName: string) {
+        console.log(toId, newName);
         const event: TEventEditGameName = {
             type: 'edit_game_name',
             id: this.socket.id,
@@ -108,7 +79,6 @@ export class SocketController {
         const event: TEventGetSync = {
             type: 'get_sync',
         }
-        console.log('sync')
         this.socket.send(JSON.stringify(event))
     }
 
@@ -127,26 +97,8 @@ export class SocketController {
             newName: name
         }
         this.socket.send(JSON.stringify(event))
+        console.log('ed')
     }
 
-    sendMyAvatar(link: string) {
-        const event: TEventEditMyAvatar = {
-            type: "edit_my_avatar",
-            id: this.socket.id,
-            avatar: link
-        }
-        this.socket.send(JSON.stringify(event))
-    }
-
-    async uploadImg(formData: FormData) : Promise<string> {
-        const res = await PartySocket.fetch({host: this.socket.host, room: this.socket.room || ''},
-            {
-                method: 'POST',
-                body: formData
-            },
-        )
-        const data = await res.json()
-        return data.link
-    }
 
 }
