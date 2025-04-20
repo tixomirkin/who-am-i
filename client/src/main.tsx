@@ -1,6 +1,5 @@
 import '@/index.css'
-import {GameStore} from "@/store/game.ts";
-import {createContext, StrictMode} from 'react'
+import {StrictMode} from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 

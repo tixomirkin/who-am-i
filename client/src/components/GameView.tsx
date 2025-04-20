@@ -1,9 +1,9 @@
-import type {TGameState, TPlayer} from "@/store/types";
+import type {TPlayer} from "@/store/types";
 import {SocketController} from "@/store/socket-controller";
 import {PlayerView} from "@/components/PlayerView";
 import {observer} from "mobx-react-lite";
-import {GameStore, Player} from "@/store/game.ts";
-import {useContext, useEffect, useState} from "react";
+import {Player} from "@/store/game.ts";
+import {useEffect, useState} from "react";
 import {Button} from "@/components/ui/button.tsx";
 import {ModeToggle} from "@/components/mode-toggle.tsx";
 import {Plus} from "lucide-react";

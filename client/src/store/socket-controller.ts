@@ -1,11 +1,7 @@
 import type {
     TEvent,
-    TEventConnect,
     TEventEditGameName, TEventEditMyName, TEventGetSync,
-    TEventJoin,
-    TEventLeave, TEventSpectator, TEventSync,
-    TGameState,
-    TPlayer
+    TEventJoin, TEventSpectator,
 } from "@/store/types";
 import PartySocket from "partysocket";
 import usePartySocket from "partysocket/react";
@@ -26,7 +22,7 @@ export class SocketController {
             id: myId ? myId : undefined,
 
             onMessage: (event) => this.onMessage(event),
-            onOpen: (event) => this.gameStore.setMyId(this.socket.id)
+            onOpen: () => this.gameStore.setMyId(this.socket.id)
         });
 
         localStorage.setItem("socket_id", this.socket.id);
