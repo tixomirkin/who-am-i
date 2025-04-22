@@ -54,7 +54,7 @@ export default function EditPlayer({player, open, onOpenChange, sc}: EditPlayerP
             setIsUploading(true);
             try {
                 // const res = await fetch(`api/parties/main/${sc.socket.room}`, {method: 'POST', body: formData })
-                const res = await fetch(`who-am-i.tixomirkin.partykit.dev/parties/main/${sc.socket.room}`, {method: 'POST', body: formData })
+                const res = await fetch(`https://who-am-i.tixomirkin.partykit.dev/parties/main/${sc.socket.room}`, {method: 'POST', body: formData })
                 const data = await res.json()
                 sc.sendMyAvatar(data.link)
                 localStorage.setItem('game-avatar', data.link)
