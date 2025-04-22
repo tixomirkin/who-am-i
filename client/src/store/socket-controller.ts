@@ -16,8 +16,8 @@ export class SocketController {
 
         this.gameStore = gameStore;
         this.socket = usePartySocket({
-            // host: 'who-am-i.tixomirkin.partykit.dev',
-            host: 'localhost:1999',
+            host: 'who-am-i.tixomirkin.partykit.dev',
+            // host: 'localhost:1999',
             room: room,
             id: myId ? myId : undefined,
 
