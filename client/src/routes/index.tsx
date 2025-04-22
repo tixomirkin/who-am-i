@@ -36,8 +36,9 @@ function RouteComponent() {
     navigate({to: '/$roomId', params: {roomId}})
   }
 
-  return <main className='bg-background w-full h-screen flex transition-colors justify-center items-center p-5'>
-
+  return <main
+      // style={{backgroundImage: url('https://imgur.com/a/GBplGFr')}}
+      className='bg-background w-full h-screen flex transition-colors justify-center items-center p-5'>
     <Card className='w-100'>
       <CardHeader>
         <CardTitle>Who am I?</CardTitle>
