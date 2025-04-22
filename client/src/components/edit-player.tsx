@@ -50,14 +50,11 @@ export default function EditPlayer({player, open, onOpenChange, sc}: EditPlayerP
 
             const formData = new FormData();
             formData.append('file', fileRef.current?.files[0]);
-            // const res = await fetch(`http://localhost:1999/parties/main/${sc.socket.room}`, {method: 'POST', body: formData })
             setIsUploading(true);
             try {
-                // const res = await fetch(`api/parties/main/${sc.socket.room}`, {method: 'POST', body: formData })
-                const res = await fetch(`https://who-am-i.tixomirkin.partykit.dev/parties/main/${sc.socket.room}`, {method: 'POST', body: formData })
-                const data = await res.json()
-                sc.sendMyAvatar(data.link)
-                localStorage.setItem('game-avatar', data.link)
+                const link = await sc.uploadImg(formData)
+                sc.sendMyAvatar(link)
+                localStorage.setItem('game-avatar', link)
             } catch (error) {
                 // @ts-ignore
                 toast.error(error)
@@ -79,7 +76,7 @@ export default function EditPlayer({player, open, onOpenChange, sc}: EditPlayerP
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogTrigger><Button variant='outline' size='icon'><UserRoundPen/></Button></DialogTrigger>
+            <DialogTrigger asChild><Button variant='outline' size='icon'><UserRoundPen/></Button></DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Редактирование профиля</DialogTitle>
