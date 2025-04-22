@@ -2,12 +2,14 @@ import type * as Party from "partykit/server";
 import type {
   TEvent, TEventConnect,
   TEventEditDescription,
-  TEventEditGameName,
+  TEventEditGameName, TEventEditMyAvatar,
   TEventEditMyName, TEventEntTurn,
   TEventJoin, TEventLeave, TEventSetAdmin, TEventSetTurn, TEventSpectator, TEventSync,
   TGameState,
   TPlayer
 } from "./types";
+import {arrayBufferToBase64, sendImgur} from "./imgur-uploader";
+
 
 export default class Server implements Party.Server {
   count = 0;
@@ -20,6 +22,57 @@ export default class Server implements Party.Server {
 
   constructor(readonly room: Party.Room) {}
 
+
+  async onRequest(req: Party.Request) {
+    if (req.method === "OPTIONS") {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+          'Access-Control-Max-Age': '86400', // 24 часа
+        }
+      });
+    }
+
+    if (req.method === "POST") {
+
+        const formData = await req.formData();
+        // @ts-ignore
+        const file = formData.get('file') as File;
+
+        if (!file) {
+          return new Response('No file uploaded', { status: 400 });
+        }
+
+        if (!file.type.startsWith('image/')) {
+          return new Response('Only image files are allowed', { status: 400 });
+        }
+
+        const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+        if (file.size > MAX_SIZE) {
+          return new Response(`File exceeds ${MAX_SIZE/1024/1024}MB limit`, { status: 400 });
+        }
+
+        const arrayBuffer = await file.arrayBuffer();
+        const base64String = arrayBufferToBase64(arrayBuffer);
+        const response = await sendImgur(base64String)
+
+        if (!response.success) {
+          console.error('Imgur API Error:', response);
+          return new Response('Imgur upload failed', { status: 500 });
+        }
+
+        return new Response(JSON.stringify(response.data), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+    }
+
+    return new Response(JSON.stringify({ status: 400 }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
   onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
     this.game.players.push({
       id: conn.id,
@@ -28,6 +81,7 @@ export default class Server implements Party.Server {
       description: '',
       isAdmin: false,
       isSpectator: true,
+      avatar: null
     })
 
     const conEvent: TEventConnect = {
@@ -82,7 +136,7 @@ export default class Server implements Party.Server {
 
   onMessage(message: string, sender: Party.Connection) {
 
-
+    console.log('test')
     const event = JSON.parse(message) as TEvent;
 
     if (event.type === "edit_my_name") {
@@ -112,26 +166,22 @@ export default class Server implements Party.Server {
     else if (event.type === "get_sync") {
       this.onSync(sender);
     }
-
-  }
-
-  onRequest(req: Party.Request) {
-    // response to any HTTP request (any method, any path) with the current
-    // count. This allows us to use SSR to give components an initial value
-
-    // if the request is a POST, increment the count
-    // if (req.method === "POST") {
-    //   this.increment();
-    // }
-
-    const event: TEventSync = {
-      type: 'sync',
-      game: this.game,
+    else if (event.type === "edit_my_avatar") {
+      this.editMyAvatar(event, sender);
     }
 
-    return new Response(JSON.stringify(event));
   }
 
+
+  editMyAvatar(event: TEventEditMyAvatar, con: Party.Connection) {
+    const player = this.game.players.find(player => player.id === con.id);
+    console.error("AVATRA")
+    if (player && player.id === event.id) {
+      player.avatar = event.avatar;
+      console.error("AVATRA2")
+      this.room.broadcast(JSON.stringify(event));
+    }
+  }
 
 
   editMyName(event: TEventEditMyName, con: Party.Connection) {

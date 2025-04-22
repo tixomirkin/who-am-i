@@ -1,6 +1,6 @@
 import type {
     TEvent,
-    TEventEditGameName, TEventEditMyName, TEventGetSync,
+    TEventEditGameName, TEventEditMyAvatar, TEventEditMyName, TEventGetSync,
     TEventJoin, TEventSpectator,
 } from "@/store/types";
 import PartySocket from "partysocket";
@@ -16,8 +16,8 @@ export class SocketController {
 
         this.gameStore = gameStore;
         this.socket = usePartySocket({
-            host: 'who-am-i.tixomirkin.partykit.dev',
-            // host: 'localhost:1999',
+            // host: 'who-am-i.tixomirkin.partykit.dev',
+            host: 'localhost:1999',
             room: room,
             id: myId ? myId : undefined,
 
@@ -52,10 +52,12 @@ export class SocketController {
         if (event.type == 'leave') {
             this.gameStore.onLeave(event)
         }
+        if (event.type == 'edit_my_avatar') {
+            this.gameStore.onEditAvatar(event)
+        }
     }
 
     sendEditGameName(toId: string, newName: string) {
-        console.log(toId, newName);
         const event: TEventEditGameName = {
             type: 'edit_game_name',
             id: this.socket.id,
@@ -97,8 +99,15 @@ export class SocketController {
             newName: name
         }
         this.socket.send(JSON.stringify(event))
-        console.log('ed')
     }
 
+    sendMyAvatar(link: string) {
+        const event: TEventEditMyAvatar = {
+            type: "edit_my_avatar",
+            id: this.socket.id,
+            avatar: link
+        }
+        this.socket.send(JSON.stringify(event))
+    }
 
 }

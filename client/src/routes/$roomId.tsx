@@ -22,7 +22,9 @@ function RouteComponent() {
     const socketController = new SocketController(gameStore, roomId);
 
     const oldName = localStorage.getItem("game-name")
+    const oldAvatar = localStorage.getItem("game-avatar")
     if (oldName) socketController.sendMyName(oldName)
+    if (oldAvatar) socketController.sendMyAvatar(oldAvatar)
 
     return <GameView sc={socketController}/>
 }

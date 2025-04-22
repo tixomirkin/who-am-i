@@ -1,12 +1,11 @@
-import type {TPlayer} from "../../party/types";
 import {SocketController} from "../socket-controller";
-import {useDeferredValue, useEffect, useState} from "react";
+import React, {useDeferredValue, useEffect, useState} from "react";
 import {observer} from "mobx-react-lite";
 import {Player} from "../store/game";
-import { useDebounce } from "use-debounce";
+import {useDebounce} from "use-debounce";
 
 
-export const PlayerView = observer(({me, player, sc}: {me: Player, player: Player, sc: SocketController}) => {
+export const PlayerView = observer(({me, player, sc}: { me: Player, player: Player, sc: SocketController }) => {
 
     if (me.id == player.id) return (
         <div>
@@ -36,7 +35,7 @@ export const PlayerView = observer(({me, player, sc}: {me: Player, player: Playe
             <input
                 disabled={me.isSpectator}
                 value={gameName}
-                onChange={(event) =>setGameName(event.target.value)}
+                onChange={(event) => setGameName(event.target.value)}
             />
 
         </div>

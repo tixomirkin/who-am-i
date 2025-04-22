@@ -5,6 +5,7 @@ export type TPlayer = {
     description: string,
     isAdmin: boolean,
     isSpectator: boolean,
+    avatar: string | null,
 }
 
 export type TGameState = {
@@ -76,7 +77,13 @@ export type TEventSetTurn = {
     id: string,
 }
 
-export type TEvent = TEventSync | TEventEntTurn | TEventEditMyName | TEventEditGameName | TEventEditDescription | TEventJoin | TEventSpectator | TEventSetAdmin | TEventLeave | TEventConnect | TEventGetSync
+export type TEventEditMyAvatar = {
+    type: 'edit_my_avatar',
+    id: string,
+    avatar: string | null,
+}
+
+export type TEvent = TEventSync | TEventEntTurn | TEventEditMyName | TEventEditGameName | TEventEditDescription | TEventJoin | TEventSpectator | TEventSetAdmin | TEventLeave | TEventConnect | TEventGetSync | TEventEditMyAvatar
 
 
 

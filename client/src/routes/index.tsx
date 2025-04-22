@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import {v4 as uuidv4} from "uuid";
 import { toast } from "sonner"
 import {useState} from "react";
+import * as url from "node:url";
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
@@ -36,8 +37,9 @@ function RouteComponent() {
     navigate({to: '/$roomId', params: {roomId}})
   }
 
-  return <main className='bg-background w-full h-screen flex transition-colors justify-center items-center p-5'>
-
+  return <main
+      // style={{backgroundImage: url('https://imgur.com/a/GBplGFr')}}
+      className='bg-background w-full h-screen flex transition-colors justify-center items-center p-5'>
     <Card className='w-100'>
       <CardHeader>
         <CardTitle>Who am I?</CardTitle>

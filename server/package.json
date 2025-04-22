@@ -7,9 +7,12 @@
     "deploy": "partykit deploy"
   },
   "dependencies": {
+    "imgur": "^2.4.3",
+    "multer": "^1.4.5-lts.2",
     "partysocket": "^1.0.2"
   },
   "devDependencies": {
+    "@types/multer": "^1.4.12",
     "partykit": "^0.0.110",
     "typescript": "^5.5.4"
   }

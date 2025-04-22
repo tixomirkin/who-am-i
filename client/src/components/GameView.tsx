@@ -22,13 +22,11 @@ export const GameView = observer( ({sc}: {sc: SocketController}) => {
     const [editOpen, setEditOpen] = useState(false);
 
     useEffect(() => {
-        if (!me?.name) setEditOpen(true)
-    }, [me]);
+        if (!localStorage.getItem("game-name")) setEditOpen(true)
+    }, []);
 
     if (!me) return null;
 
-
-    // console.log(players)
 
     return (
         <>

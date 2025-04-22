@@ -9,10 +9,10 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import {Button} from "@/components/ui/button.tsx";
-import {UserRoundPen} from "lucide-react";
+import {LoaderCircle, UserRoundPen} from "lucide-react";
 import {Input} from "@/components/ui/input.tsx";
 import {Label} from "@/components/ui/label.tsx";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {toast} from "sonner";
 import {SocketController} from "@/store/socket-controller.ts";
 import {useNavigate} from "@tanstack/react-router";
@@ -24,23 +24,48 @@ type EditPlayerProps = {
     sc: SocketController
 }
 
+
 export default function EditPlayer({player, open, onOpenChange, sc}: EditPlayerProps) {
 
     const [name, setName] = useState("");
+    const [isUploading, setIsUploading] = useState(false);
     const navigate = useNavigate({ from: '/$roomId' })
+    const fileRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        // const oldName = localStorage.getItem("game-name")
-        // if (oldName) setName(oldName);
-        // else setName('');
         setName(player.name);
     }, [open]);
 
-    const editName = () => {
+    const editName = async () => {
         if (name == '') {
             toast.info("Введите имя")
             return
         }
+        if (fileRef.current?.files && fileRef.current.files[0]) {
+            const typeFile = fileRef.current?.files[0].type
+            if (typeFile != 'image/jpeg' && typeFile != 'image/png') {
+                toast.info("Поддерживается только загрузка png и jpeg ")
+                return
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileRef.current?.files[0]);
+            // const res = await fetch(`http://localhost:1999/parties/main/${sc.socket.room}`, {method: 'POST', body: formData })
+            setIsUploading(true);
+            try {
+                const res = await fetch(`api/parties/main/${sc.socket.room}`, {method: 'POST', body: formData })
+                const data = await res.json()
+                sc.sendMyAvatar(data.link)
+                localStorage.setItem('game-avatar', data.link)
+            } catch (error) {
+                // @ts-ignore
+                toast.error(error)
+            } finally {
+                setIsUploading(false);
+            }
+
+        }
+
         sc.sendMyName(name)
         localStorage.setItem('game-name', name)
         onOpenChange(false)
@@ -66,17 +91,16 @@ export default function EditPlayer({player, open, onOpenChange, sc}: EditPlayerP
                 <Input value={name} onChange={(e) => setName(e.target.value)} id='name'/>
 
                 <Label htmlFor='file'>Загрузка аватара</Label>
-                <Input disabled type='file' id='file'/>
+                <Input ref={fileRef} type='file' id='file'/>
 
                 <DialogDescription className=''>
-                    Загрузка аватара пока недоступна.<br/>
                     Если у вас возникают проблемы с подключением, вы можете попробовать сбросить socket-id.<br/>
                     socket-id: {sc.socket.id}
                 </DialogDescription>
 
                 <DialogFooter>
                     <Button variant='ghost' onClick={resetSocket} className='mr-auto'>Сбросить socket-id</Button>
-                    <Button variant='default' onClick={editName}>Сохранить</Button>
+                    <Button variant='default' disabled={isUploading} onClick={editName}>{isUploading ? <><LoaderCircle className='animate-spin'/> Сохранение</> : 'Сохранить'}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

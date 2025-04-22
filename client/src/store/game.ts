@@ -4,7 +4,7 @@ import type {
     TEventJoin,
     TEventLeave,
     TEventSync,
-    TPlayer
+    TPlayer, TEventEditMyAvatar
 } from "@/store/types";
 import { makeAutoObservable } from "mobx"
 import {TEventEditMyName, TEventSpectator} from "@/store/types.ts";
@@ -16,6 +16,7 @@ export class Player {
     description: string = '';
     isAdmin: boolean = false;
     isSpectator: boolean = true;
+    avatar: string | null = null;
 
 
     constructor(id: string) {
@@ -30,6 +31,7 @@ export class Player {
         player.description = fromPlayer.description
         player.isAdmin = fromPlayer.isAdmin
         player.isSpectator = fromPlayer.isSpectator
+        player.avatar = fromPlayer.avatar
         return player
     }
 
@@ -39,6 +41,7 @@ export class Player {
     setDescription(description: string) { this.description = description; }
     setIsAdmin(isAdmin: boolean) { this.isAdmin = isAdmin; }
     setIsSpectator(isSpectator: boolean) { this.isSpectator = isSpectator; }
+    setAvatar(avatar: string | null) { this.avatar = avatar; }
 
 
 }
@@ -98,6 +101,13 @@ export class GameStore {
         const player = this.players.find((player) => player.id === event.id)
         if (player) {
             player.setName(event.newName)
+        }
+    }
+
+    onEditAvatar(event: TEventEditMyAvatar) {
+        const player = this.players.find((player) => player.id === event.id)
+        if (player) {
+            player.setAvatar(event.avatar)
         }
     }
 
