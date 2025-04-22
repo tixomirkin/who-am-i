@@ -4,12 +4,10 @@ import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import path from "path"
 
-import dotenv from 'dotenv';
-dotenv.config();
 
 // https://vite.dev/config/
-export default defineConfig(() => {
-    return {plugins: [
+export default defineConfig({
+    plugins: [
         TanStackRouterVite({ target: 'react', autoCodeSplitting: true }),
         react(),
         tailwindcss(),
@@ -27,8 +25,5 @@ export default defineConfig(() => {
                 rewrite: (path) => path.replace(/^\/api/, '')
             }
         }
-    },
-    define: {
-        __APP_ENV__: process.env.VITE_VERCEL_ENV,
     }
-}})
+})

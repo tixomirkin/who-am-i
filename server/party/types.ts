@@ -25,6 +25,7 @@ export type TEventGetSync = {
 
 export type TEventEntTurn = {
     type: 'end_turn',
+    id: string
 }
 
 export type TEventEditMyName = {
@@ -82,7 +83,6 @@ export type TEventSetTurn = {
     type: 'set_turn',
     id: string,
 }
-
 
 export type TEvent = TEventSync | TEventEntTurn | TEventEditMyName | TEventEditGameName | TEventEditDescription | TEventJoin | TEventSpectator | TEventSetAdmin | TEventLeave | TEventConnect | TEventGetSync | TEventEditMyAvatar
 
