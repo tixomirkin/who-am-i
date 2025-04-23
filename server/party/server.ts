@@ -8,8 +8,7 @@ import type {
   TGameState,
   TPlayer
 } from "./types";
-import {arrayBufferToBase64, sendImgur} from "./imgur-uploader";
-
+import { headers, onPost} from "./imgur-uploader";
 
 export default class Server implements Party.Server {
   count = 0;
@@ -25,52 +24,14 @@ export default class Server implements Party.Server {
 
   async onRequest(req: Party.Request) {
     if (req.method === "OPTIONS") {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Access-Control-Max-Age': '86400', // 24 часа
-        }
-      });
+      return new Response(null, {headers: headers});
     }
 
     if (req.method === "POST") {
-
-        const formData = await req.formData();
-        // @ts-ignore
-        const file = formData.get('file') as File;
-
-        if (!file) {
-          return new Response('No file uploaded', { status: 400 });
-        }
-
-        if (!file.type.startsWith('image/')) {
-          return new Response('Only image files are allowed', { status: 400 });
-        }
-
-        const MAX_SIZE = 2 * 1024 * 1024; // 2MB
-        if (file.size > MAX_SIZE) {
-          return new Response(`File exceeds ${MAX_SIZE/1024/1024}MB limit`, { status: 400 });
-        }
-
-        const arrayBuffer = await file.arrayBuffer();
-        const base64String = arrayBufferToBase64(arrayBuffer);
-        const response = await sendImgur(base64String)
-
-        if (!response.success) {
-          console.error('Imgur API Error:', response);
-          return new Response('Imgur upload failed', { status: 500 });
-        }
-
-        return new Response(JSON.stringify(response.data), {
-          headers: { 'Content-Type': 'application/json' }
-        });
+        return await onPost(req)
     }
 
-    return new Response(JSON.stringify({ status: 400 }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(JSON.stringify({ status: 400 }), {headers: headers});
   }
 
   onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
@@ -111,9 +72,9 @@ export default class Server implements Party.Server {
   onClose(conn: Party.Connection) {
     const player = this.game.players.find(player => player.id === conn.id);
     if (player) {
-      if (this.game.turnPlayerId == conn.id) {
-          this.endTurn({type: 'end_turn', id: conn.id}, conn)
-      }
+      // if (this.game.turnPlayerId == conn.id) {
+      //     this.endTurn({type: 'end_turn'}, conn)
+      // }
 
       this.game.players = this.game.players.filter(player => player.id !== conn.id);
 
@@ -136,7 +97,6 @@ export default class Server implements Party.Server {
 
   onMessage(message: string, sender: Party.Connection) {
 
-    console.log('test')
     const event = JSON.parse(message) as TEvent;
 
     if (event.type === "edit_my_name") {
@@ -175,10 +135,8 @@ export default class Server implements Party.Server {
 
   editMyAvatar(event: TEventEditMyAvatar, con: Party.Connection) {
     const player = this.game.players.find(player => player.id === con.id);
-    console.error("AVATRA")
     if (player && player.id === event.id) {
       player.avatar = event.avatar;
-      console.error("AVATRA2")
       this.room.broadcast(JSON.stringify(event));
     }
   }
@@ -237,19 +195,25 @@ export default class Server implements Party.Server {
   }
 
   endTurn(event: TEventEntTurn, con: Party.Connection) {
-    if (this.game.turnPlayerId == con.id && con.id == event.id) {
+    const players = this.game.players.filter(player => !player.isSpectator);
+    if (this.game.turnPlayerId == con.id && players.length) {
       let turnIndex = 0;
-      const playerIndex = this.game.players.findIndex((player) => player.id === con.id);
-      if (playerIndex + 1 != this.game.players.length) {
+      const playerIndex = players.findIndex((player) => player.id === con.id);
+      if ((playerIndex + 1) != players.length) {
         turnIndex = playerIndex + 1
       }
-      this.game.turnPlayerId = this.game.players[playerIndex].id
-      this.room.broadcast(JSON.stringify(event));
+      this.game.turnPlayerId = players[turnIndex].id
+      const event2 : TEventSetTurn = {
+        type: "set_turn",
+        id: this.game.turnPlayerId
+      }
+      this.room.broadcast(JSON.stringify(event2));
     }
   }
 
   leave(event: TEventLeave, con: Party.Connection) {
     if (event.id == con.id) {
+      this.endTurn({type: "end_turn"}, con)
       this.room.broadcast(JSON.stringify(event));
     }
   }

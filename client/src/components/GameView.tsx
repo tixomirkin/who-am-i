@@ -2,28 +2,35 @@ import type {TPlayer} from "@/store/types";
 import {SocketController} from "@/store/socket-controller";
 import {PlayerView} from "@/components/PlayerView";
 import {observer} from "mobx-react-lite";
-import {Player} from "@/store/game.ts";
-import {useEffect, useState} from "react";
+import {GameStore, Player} from "@/store/game.ts";
+import {useContext, useEffect, useState} from "react";
 import {Button} from "@/components/ui/button.tsx";
 import {ModeToggle} from "@/components/mode-toggle.tsx";
-import {Plus} from "lucide-react";
+import {Plus, RefreshCcw} from "lucide-react";
 import EditPlayer from "@/components/edit-player.tsx";
+import {GameContext} from "@/routes/__root.tsx";
+// import { action } from "mobx";
+
 
 export const GameView = observer( ({sc}: {sc: SocketController}) => {
-    useEffect(() => {
-        const syncInterval = setInterval(() => sc.sendSync(), 5000)
-        return () => clearInterval(syncInterval)
-    }, []);
 
-    const spectators = sc.gameStore.players.filter((player) => player.isSpectator)
-    const players = sc.gameStore.players.filter((player) => !player.isSpectator)
-    const me = sc.gameStore.players.find((player) => player.id == sc.socket.id)
+    // useEffect(() => {
+    //     const syncInterval = setInterval(() => sc.sendSync(), 3000)
+    //     return () => clearInterval(syncInterval)
+    // }, []);
+
+    const gameStore = useContext<GameStore>(GameContext)
+
+    const spectators = gameStore.players.filter((player) => player.isSpectator)
+    const players = gameStore.players.filter((player) => !player.isSpectator)
+    const me = gameStore.players.find((player) => player.id == sc.socket.id)
 
     const [editOpen, setEditOpen] = useState(false);
 
     useEffect(() => {
         if (!localStorage.getItem("game-name")) setEditOpen(true)
     }, []);
+
 
     if (!me) return null;
 
@@ -34,7 +41,7 @@ export const GameView = observer( ({sc}: {sc: SocketController}) => {
 
                 <div className='flex flex-row items-center justify-center flex-wrap gap-2'>
                     {players.map((player: Player) => {
-                        return <PlayerView key={player.id} me={me} player={player} sc={sc}/>
+                        return <PlayerView key={player.id} me={me} isTurn={sc.gameStore.turnPlayerId == player.id} player={player} sc={sc}/>
                     })}
                     {me.isSpectator && <Button variant='outline' className='w-50 h-80 text-center'
                                                onClick={() => sc.sendJoin()}>
@@ -62,6 +69,7 @@ export const GameView = observer( ({sc}: {sc: SocketController}) => {
             <div className='absolute top-3 left-3 flex flex-row gap-1'>
                 <ModeToggle/>
                 <EditPlayer player={me} open={editOpen} onOpenChange={setEditOpen} sc={sc}/>
+                <Button onClick={() => sc.sendSync()} variant='outline' size='icon'><RefreshCcw/></Button>
             </div>
             {/*{me?.isSpectator && <button className="border" onClick={() => sc.sendJoin()}>Присоедениться</button>}*/}
             {/*{!me?.isSpectator && <button onClick={() => sc.sendJoin()}>Выйти</button>}*/}
