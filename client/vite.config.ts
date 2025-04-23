@@ -8,8 +8,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // https://vite.dev/config/
-export default defineConfig({
-    plugins: [
+export default defineConfig(() => {
+    return {plugins: [
         TanStackRouterVite({ target: 'react', autoCodeSplitting: true }),
         react(),
         tailwindcss(),
@@ -29,6 +29,6 @@ export default defineConfig({
         }
     },
     define: {
-        __VITE_PARTY_KIT_DOMAIN__: process.env.VITE_PARTY_KIT_DOMAIN || "localhost:1999"
+        __APP_ENV__: process.env.VITE_VERCEL_ENV,
     }
-})
+}})
