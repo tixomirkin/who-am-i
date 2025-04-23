@@ -6,7 +6,6 @@ import type {
   TEventEditMyName, TEventEntTurn,
   TEventJoin, TEventLeave, TEventSetAdmin, TEventSetTurn, TEventSpectator, TEventSync,
   TGameState,
-  TPlayer
 } from "./types";
 import { headers, onPost} from "./imgur-uploader";
 
