@@ -27,5 +27,8 @@ export default defineConfig({
                 rewrite: (path) => path.replace(/^\/api/, '')
             }
         }
+    },
+    define: {
+        __VITE_PARTY_KIT_DOMAIN__: process.env.VITE_PARTY_KIT_DOMAIN || "localhost:1999"
     }
 })
