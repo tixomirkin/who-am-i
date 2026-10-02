@@ -28,7 +28,7 @@ export const PlayerView = observer(({me, isTurn, player, sc}: PlayerViewProps) =
 
     useEffect(
         () => sc.sendEditGameName(player.id, debouncedValue),
-        [debouncedValue]
+        [debouncedValue, player.id, sc]
     );
 
     useEffect(

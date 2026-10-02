@@ -1,13 +1,10 @@
 import * as React from 'react'
 import { Outlet, createRootRoute } from '@tanstack/react-router'
 
-import {GameStore} from "@/store/game.ts";
-import {createContext} from "react";
 import {ThemeProvider} from "@/lib/theme-provider.tsx";
 import {Toaster} from "@/components/ui/sonner.tsx";
+import {GameContext, gameStore} from "@/store/context.ts";
 
-const gameStore = new GameStore()
-export const GameContext = createContext<GameStore>(gameStore)
 
 export const Route = createRootRoute({
   component: RootComponent,
