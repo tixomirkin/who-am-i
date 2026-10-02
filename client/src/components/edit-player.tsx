@@ -34,7 +34,7 @@ export default function EditPlayer({player, open, onOpenChange, sc}: EditPlayerP
 
     useEffect(() => {
         setName(player.name);
-    }, [open]);
+    }, [open, player.name]);
 
     const editName = async () => {
         if (name == '') {
@@ -56,7 +56,7 @@ export default function EditPlayer({player, open, onOpenChange, sc}: EditPlayerP
                 sc.sendMyAvatar(link)
                 localStorage.setItem('game-avatar', link)
             } catch (error) {
-                // @ts-ignore
+                // @ts-expect-error type of error is unknown
                 toast.error(error)
             } finally {
                 setIsUploading(false);

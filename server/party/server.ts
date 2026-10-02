@@ -71,10 +71,6 @@ export default class Server implements Party.Server {
   onClose(conn: Party.Connection) {
     const player = this.game.players.find(player => player.id === conn.id);
     if (player) {
-      // if (this.game.turnPlayerId == conn.id) {
-      //     this.endTurn({type: 'end_turn'}, conn)
-      // }
-
       this.game.players = this.game.players.filter(player => player.id !== conn.id);
 
       if (player.isAdmin && this.game.players.length >= 1) {

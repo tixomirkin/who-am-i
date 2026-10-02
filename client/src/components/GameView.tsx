@@ -8,16 +8,10 @@ import {Button} from "@/components/ui/button.tsx";
 import {ModeToggle} from "@/components/mode-toggle.tsx";
 import {Plus, RefreshCcw} from "lucide-react";
 import EditPlayer from "@/components/edit-player.tsx";
-import {GameContext} from "@/routes/__root.tsx";
-// import { action } from "mobx";
+import {GameContext} from "@/store/context.ts";
 
 
 export const GameView = observer( ({sc}: {sc: SocketController}) => {
-
-    // useEffect(() => {
-    //     const syncInterval = setInterval(() => sc.sendSync(), 3000)
-    //     return () => clearInterval(syncInterval)
-    // }, []);
 
     const gameStore = useContext<GameStore>(GameContext)
 
@@ -47,7 +41,7 @@ export const GameView = observer( ({sc}: {sc: SocketController}) => {
                                                onClick={() => sc.sendJoin()}>
                         <div className='flex flex-col items-center justify-center gap-2'>
                             <Plus className='size-10' />
-                            Присоеденится
+                            Присоединиться
                         </div>
                     </Button>}
                 </div>
@@ -71,8 +65,6 @@ export const GameView = observer( ({sc}: {sc: SocketController}) => {
                 <EditPlayer player={me} open={editOpen} onOpenChange={setEditOpen} sc={sc}/>
                 <Button onClick={() => sc.sendSync()} variant='outline' size='icon'><RefreshCcw/></Button>
             </div>
-            {/*{me?.isSpectator && <button className="border" onClick={() => sc.sendJoin()}>Присоедениться</button>}*/}
-            {/*{!me?.isSpectator && <button onClick={() => sc.sendJoin()}>Выйти</button>}*/}
         </>
     )
 })
