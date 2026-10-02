@@ -4,7 +4,6 @@ import type {
     TEventJoin, TEventSpectator, TEventEntTurn, TEventSetAdmin
 } from "@/store/types";
 import PartySocket from "partysocket";
-// import usePartySocket from "partysocket/react";
 import {GameStore} from "@/store/game.ts";
 
 export class SocketController {
@@ -22,14 +21,6 @@ export class SocketController {
         })
         this.socket.addEventListener("connect", () => this.gameStore.setMyId(this.socket.id))
         this.socket.addEventListener('message', (event: MessageEvent) => this.onMessage(event))
-        // this.socket = usePartySocket({
-        //     host: import.meta.env.VITE_PARTY_KIT_DOMAIN,
-        //     room: room,
-        //     id: myId ? myId : undefined,
-        //
-        //     onMessage: (event) => this.onMessage(event),
-        //     onOpen: () => this.gameStore.setMyId(this.socket.id)
-        // });
 
         localStorage.setItem("socket_id", this.socket.id);
     }
@@ -101,7 +92,6 @@ export class SocketController {
             id: this.socket.id
         }
         this.socket.send(JSON.stringify(event))
-        // this.gameStore.onJoin(event)
     }
 
     sendSync() {

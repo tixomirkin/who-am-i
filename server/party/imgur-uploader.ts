@@ -43,7 +43,7 @@ export function arrayBufferToBase64(buffer: ArrayBuffer): string {
 
 export async function onPost(req: Party.Request) {
     const formData = await req.formData();
-    // @ts-ignore
+    // @ts-expect-error type of formData is unknown
     const file = formData.get('file') as File;
 
     if (!file) {
