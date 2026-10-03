@@ -240,6 +240,9 @@ export class GameStore {
 
   onSetTurn(event: TEventSetTurn): void {
     this.turnPlayerId = event.id;
+    if (event.round !== undefined) {
+      this.round = event.round;
+    }
   }
 
   onUpdateSettings(event: TEventUpdateSettings): void {

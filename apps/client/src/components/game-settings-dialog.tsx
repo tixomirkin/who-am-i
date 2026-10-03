@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import type { CharacterAssignmentMode } from '@who-am-i/shared';
 import { toast } from 'sonner';
+import { useTranslation } from '@/i18n';
 
 interface GameSettingsDialogProps {
   sc: SocketController;
@@ -31,6 +32,7 @@ interface GameSettingsDialogProps {
 
 export const GameSettingsDialog = observer(
   ({ sc, open, onOpenChange }: GameSettingsDialogProps) => {
+    const { t } = useTranslation();
     const gameStore = useGameStore();
     const isMeAdmin = gameStore.isGameAdmin;
 
@@ -48,7 +50,7 @@ export const GameSettingsDialog = observer(
 
     const handleSave = () => {
       if (!isMeAdmin) {
-        toast.error('Только администратор может изменять настройки игры');
+        toast.error(t('onlyAdminCanChangeSettings'));
         return;
       }
 
@@ -57,38 +59,38 @@ export const GameSettingsDialog = observer(
         allowSpectatorViewing,
       });
 
-      toast.success('Настройки игры обновлены');
+      toast.success(t('settingsUpdated'));
       onOpenChange(false);
     };
 
     const modes: {
       id: CharacterAssignmentMode;
-      title: string;
-      desc: string;
+      titleKey: 'modeFreeTitle' | 'modeRightTitle' | 'modeLeftTitle' | 'modeAdminTitle';
+      descKey: 'modeFreeDesc' | 'modeRightDesc' | 'modeLeftDesc' | 'modeAdminDesc';
       icon: typeof Shuffle;
     }[] = [
       {
         id: 'free',
-        title: 'Свободный режим',
-        desc: 'Каждый игрок может загадать персонажа любому другому игроку',
+        titleKey: 'modeFreeTitle',
+        descKey: 'modeFreeDesc',
         icon: Shuffle,
       },
       {
         id: 'neighbor_right',
-        title: 'По кругу (соседу справа ➡️)',
-        desc: 'Каждый игрок загадывает персонажа следующему игроку по часовой стрелке',
+        titleKey: 'modeRightTitle',
+        descKey: 'modeRightDesc',
         icon: ArrowRight,
       },
       {
         id: 'neighbor_left',
-        title: 'По кругу (соседу слева ⬅️)',
-        desc: 'Каждый игрок загадывает персонажа предыдущему игроку против часовой стрелки',
+        titleKey: 'modeLeftTitle',
+        descKey: 'modeLeftDesc',
         icon: ArrowLeft,
       },
       {
         id: 'admin_only',
-        title: 'Только ведущий 👑',
-        desc: 'Администратор комнаты единолично загадывает персонажей всем участникам',
+        titleKey: 'modeAdminTitle',
+        descKey: 'modeAdminDesc',
         icon: Crown,
       },
     ];
@@ -99,7 +101,7 @@ export const GameSettingsDialog = observer(
           <Button
             variant="outline"
             size="icon"
-            title="Настройки игры"
+            title={t('roomSettings')}
             className="relative"
           >
             <Settings className="size-4" />
@@ -108,19 +110,19 @@ export const GameSettingsDialog = observer(
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Settings className="size-5 text-primary" /> Настройки комнаты
+              <Settings className="size-5 text-primary" /> {t('roomSettings')}
             </DialogTitle>
             <DialogDescription>
               {isMeAdmin
-                ? 'Настройте правила распределения персонажей и параметры комнаты.'
-                : 'Просмотр текущих настроек игры (изменять может только администратор).'}
+                ? t('roomSettingsAdminDesc')
+                : t('roomSettingsUserDesc')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div>
               <Label className="text-sm font-semibold mb-2 block">
-                Режим загадывания персонажей
+                {t('characterAssignmentMode')}
               </Label>
               <div className="space-y-2">
                 {modes.map((m) => {
@@ -147,12 +149,12 @@ export const GameSettingsDialog = observer(
                       </div>
                       <div className="flex-1">
                         <div className="font-medium text-sm text-foreground flex items-center justify-between">
-                          <span>{m.title}</span>
+                          <span>{t(m.titleKey)}</span>
                           {isSelected && (
-                            <span className="text-xs font-semibold text-primary">Активен</span>
+                            <span className="text-xs font-semibold text-primary">{t('activeModeBadge')}</span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">{m.desc}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{t(m.descKey)}</p>
                       </div>
                     </button>
                   );
@@ -164,7 +166,7 @@ export const GameSettingsDialog = observer(
             {isMeAdmin && gameStore.activePlayers.length > 1 && (
               <div className="pt-2 border-t border-border">
                 <Label className="text-xs font-semibold text-muted-foreground mb-1.5 block">
-                  Передать права администратора
+                  {t('transferAdmin')}
                 </Label>
                 <div className="flex flex-wrap gap-1.5">
                   {gameStore.activePlayers
@@ -175,10 +177,10 @@ export const GameSettingsDialog = observer(
                         type="button"
                         variant="secondary"
                         size="sm"
-                        className="text-xs"
+                        className="text-xs cursor-pointer"
                         onClick={() => {
                           sc.sendSetAdmin(player.id);
-                          toast.success(`Права администратора переданы игроку ${player.displayName}`);
+                          toast.success(t('adminTransferred', { name: player.displayName }));
                         }}
                       >
                         <Crown className="size-3 mr-1 text-amber-500" />
@@ -196,11 +198,11 @@ export const GameSettingsDialog = observer(
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Закрыть
+              {t('close')}
             </Button>
             {isMeAdmin && (
               <Button type="button" onClick={handleSave}>
-                Сохранить настройки
+                {t('saveSettings')}
               </Button>
             )}
           </DialogFooter>

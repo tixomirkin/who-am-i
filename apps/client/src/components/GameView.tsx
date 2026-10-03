@@ -5,6 +5,7 @@ import { useGameStore } from '@/hooks/useGameStore';
 import { PlayerView } from '@/components/PlayerView';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/mode-toggle';
+import { LanguageToggle } from '@/components/language-toggle';
 import EditPlayer from '@/components/edit-player';
 import { GameSettingsDialog } from '@/components/game-settings-dialog';
 import {
@@ -21,12 +22,14 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from '@tanstack/react-router';
+import { useTranslation } from '@/i18n';
 
 interface GameViewProps {
   sc: SocketController;
 }
 
 export const GameView = observer(({ sc }: GameViewProps) => {
+  const { t } = useTranslation();
   const gameStore = useGameStore();
   const [editOpen, setEditOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -49,21 +52,21 @@ export const GameView = observer(({ sc }: GameViewProps) => {
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
-      toast.success('Ссылка на комнату скопирована в буфер обмена!');
+      toast.success(t('linkCopied'));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Не удалось скопировать ссылку');
+      toast.error(t('copyFailed'));
     }
   };
 
   const getModeLabel = () => {
     switch (gameStore.settings.assignmentMode) {
       case 'neighbor_right':
-        return 'Режим: Соседу справа ➡️';
+        return t('modeRightTitle');
       case 'neighbor_left':
-        return 'Режим: Соседу слева ⬅️';
+        return t('modeLeftTitle');
       case 'admin_only':
-        return 'Режим: Загадывает ведущий 👑';
+        return t('modeAdminTitle');
       default:
         return null;
     }
@@ -74,7 +77,7 @@ export const GameView = observer(({ sc }: GameViewProps) => {
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
           <RefreshCw className="size-8 animate-spin text-primary" />
-          <p className="text-sm">Подключение к комнате...</p>
+          <p className="text-sm">{t('connecting')}</p>
         </div>
       </div>
     );
@@ -89,16 +92,16 @@ export const GameView = observer(({ sc }: GameViewProps) => {
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link to="/">
-              <Button variant="ghost" size="icon" title="На главную">
+              <Button variant="ghost" size="icon" title={t('home')}>
                 <ArrowLeft className="size-4" />
               </Button>
             </Link>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-lg hidden sm:inline">Who am I?</span>
+              <span className="font-bold text-lg hidden sm:inline">{t('appName')}</span>
               <button
                 onClick={copyRoomLink}
-                className="flex items-center gap-1.5 px-3 py-1 bg-muted hover:bg-muted/80 rounded-full text-xs font-mono text-muted-foreground hover:text-foreground transition-colors border border-border"
-                title="Нажмите, чтобы скопировать ссылку"
+                className="flex items-center gap-1.5 px-3 py-1 bg-muted hover:bg-muted/80 rounded-full text-xs font-mono text-muted-foreground hover:text-foreground transition-colors border border-border cursor-pointer"
+                title={t('copyLink')}
               >
                 {copied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
                 <span className="truncate max-w-[140px] sm:max-w-xs">{sc.socket.room}</span>
@@ -118,9 +121,9 @@ export const GameView = observer(({ sc }: GameViewProps) => {
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
                 <Sparkles className="size-3.5 animate-pulse" />
                 <span>
-                  Сейчас ходит:{' '}
+                  {t('currentTurn')}:{' '}
                   <strong className="font-semibold">
-                    {turnPlayer.id === me.id ? 'Вы' : turnPlayer.displayName}
+                    {turnPlayer.id === me.id ? t('yourTurn') : turnPlayer.displayName}
                   </strong>
                 </span>
               </div>
@@ -139,10 +142,11 @@ export const GameView = observer(({ sc }: GameViewProps) => {
               onClick={() => sc.sendSync()}
               variant="outline"
               size="icon"
-              title="Синхронизировать состояние"
+              title={t('syncState')}
             >
               <RefreshCw className="size-4" />
             </Button>
+            <LanguageToggle />
             <ModeToggle />
           </div>
         </div>
@@ -154,14 +158,14 @@ export const GameView = observer(({ sc }: GameViewProps) => {
           <div className="text-center max-w-md py-12 px-6 rounded-2xl border border-dashed border-border bg-card/40 space-y-4">
             <Users className="size-12 mx-auto text-muted-foreground/60" />
             <div className="space-y-1">
-              <h2 className="text-lg font-semibold">В игре пока нет участников</h2>
+              <h2 className="text-lg font-semibold">{t('noPlayersYet')}</h2>
               <p className="text-sm text-muted-foreground">
-                Присоединяйтесь к игре или отправьте ссылку друзьям, чтобы начать угадывать персонажей!
+                {t('noPlayersDesc')}
               </p>
             </div>
             {me.isSpectator && (
-              <Button onClick={() => sc.sendJoin()} className="w-full sm:w-auto">
-                <Plus className="size-4 mr-2" /> Вступить в игру
+              <Button onClick={() => sc.sendJoin()} className="w-full sm:w-auto font-medium">
+                <Plus className="size-4 mr-2" /> {t('joinGame')}
               </Button>
             )}
           </div>
@@ -186,7 +190,7 @@ export const GameView = observer(({ sc }: GameViewProps) => {
                 <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center">
                   <Plus className="size-6" />
                 </div>
-                <span>Вступить в игру</span>
+                <span>{t('joinGame')}</span>
               </button>
             )}
           </div>
@@ -198,9 +202,9 @@ export const GameView = observer(({ sc }: GameViewProps) => {
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <Eye className="size-4" />
-            <span className="font-medium">Зрители ({spectators.length}):</span>
+            <span className="font-medium">{t('spectators')} ({spectators.length}):</span>
             {spectators.length === 0 ? (
-              <span>нет</span>
+              <span>{t('spectatorsNone')}</span>
             ) : (
               <div className="flex items-center gap-1.5 flex-wrap">
                 {spectators.map((s) => (
@@ -208,7 +212,7 @@ export const GameView = observer(({ sc }: GameViewProps) => {
                     key={s.id}
                     className="px-2 py-0.5 rounded bg-muted text-foreground font-medium text-[11px]"
                   >
-                    {s.displayName} {s.id === me.id && '(Вы)'}
+                    {s.displayName} {s.id === me.id && `(${t('you')})`}
                   </span>
                 ))}
               </div>
@@ -217,11 +221,11 @@ export const GameView = observer(({ sc }: GameViewProps) => {
 
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1 font-medium text-foreground">
-              <RotateCw className="size-3 text-primary" /> Круг: {gameStore.round + 1}
+              <RotateCw className="size-3 text-primary" /> {t('circleCounter')}: {gameStore.round + 1}
             </span>
             {me.isAdmin && (
               <span className="flex items-center gap-1 text-amber-500 font-medium">
-                <Crown className="size-3" /> Вы админ
+                <Crown className="size-3" /> {t('adminBadge')}
               </span>
             )}
           </div>

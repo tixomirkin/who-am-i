@@ -66,6 +66,7 @@ export interface TEventLeave {
 export interface TEventSetTurn {
   type: 'set_turn';
   id: string;
+  round?: number;
 }
 
 export interface TEventUpdateSettings {

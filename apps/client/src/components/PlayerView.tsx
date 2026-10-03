@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Crown, Play, LogOut, HelpCircle, Lock } from 'lucide-react';
 import { canAssignCharacter } from '@who-am-i/shared';
+import { useTranslation } from '@/i18n';
 
 interface PlayerViewProps {
   player: Player;
@@ -16,6 +17,7 @@ interface PlayerViewProps {
 }
 
 export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps) => {
+  const { t } = useTranslation();
   const gameStore = useGameStore();
   const isMe = me.id === player.id;
   const canEdit = gameStore.canEditCharacterFor(player.id);
@@ -36,19 +38,19 @@ export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps)
   };
 
   const getPlaceholderText = () => {
-    if (isMe) return 'Ваш персонаж';
+    if (isMe) return t('mysteryCardHidden');
     if (!canEdit) {
       const mode = gameStore.settings.assignmentMode;
-      if (mode === 'admin_only') return 'Загадывает ведущий';
+      if (mode === 'admin_only') return t('assignedByAdmin');
       if (mode === 'neighbor_right' || mode === 'neighbor_left') {
         const author = gameStore.activePlayers.find((activeP) =>
           canAssignCharacter(activeP.id, player.id, gameStore.toGameState())
         );
-        return author ? `Загадывает ${author.displayName}` : 'Заблокировано';
+        return author ? t('assignedByAuthor', { name: author.displayName }) : t('lockedEditing');
       }
-      return 'Только для игроков';
+      return t('onlyPlayersCanEdit');
     }
-    return player.gameName ? player.gameName : 'Загадайте персонажа...';
+    return player.gameName ? player.gameName : t('characterPlaceholder');
   };
 
   return (
@@ -76,7 +78,7 @@ export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps)
         {/* Turn Status Overlay Badge */}
         {isTurn && (
           <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1 shadow">
-            <Play className="size-3 fill-current" /> Ход
+            <Play className="size-3 fill-current" /> {t('circleCounter')}
           </div>
         )}
 
@@ -84,7 +86,7 @@ export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps)
         {player.isAdmin && (
           <div
             className="absolute top-2 right-2 p-1.5 rounded-full bg-amber-500/90 text-white shadow"
-            title="Администратор комнаты"
+            title={t('adminBadge')}
           >
             <Crown className="size-3.5" />
           </div>
@@ -94,8 +96,8 @@ export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps)
         {isMe && !me.isSpectator && (
           <button
             onClick={() => sc.sendSpectator()}
-            title="Перейти в зрители"
-            className="absolute bottom-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-destructive hover:text-white backdrop-blur-sm text-muted-foreground transition-colors shadow"
+            title={t('switchToSpectator')}
+            className="absolute bottom-2 right-2 p-1.5 rounded-full bg-background/80 hover:bg-destructive hover:text-white backdrop-blur-sm text-muted-foreground transition-colors shadow cursor-pointer"
           >
             <LogOut className="size-3.5" />
           </button>
@@ -112,7 +114,7 @@ export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps)
             }`}
             title={player.displayName}
           >
-            {player.displayName} {isMe && <span className="text-xs text-muted-foreground font-normal">(Вы)</span>}
+            {player.displayName} {isMe && <span className="text-xs text-muted-foreground font-normal">({t('you')})</span>}
           </h3>
         </div>
 
@@ -123,7 +125,7 @@ export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps)
               <div className="h-16 rounded-lg bg-muted/60 border border-dashed border-border flex items-center justify-center text-center p-2">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <HelpCircle className="size-4 text-primary" />
-                  <span>Ваш персонаж скрыт</span>
+                  <span>{t('mysteryCardHidden')}</span>
                 </div>
               </div>
 
@@ -133,7 +135,7 @@ export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps)
                   className="w-full font-medium"
                   onClick={() => sc.sendEndTurn()}
                 >
-                  Завершить ход
+                  {t('finishTurn')}
                 </Button>
               ) : null}
             </div>
@@ -141,10 +143,10 @@ export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps)
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <label className="text-[11px] uppercase tracking-wider text-muted-foreground block text-left">
-                  Загаданный персонаж
+                  {t('targetCharacter')}
                 </label>
                 {!canEdit && (
-                  <span title="Редактирование недоступно">
+                  <span title={t('lockedEditing')}>
                     <Lock className="size-3 text-muted-foreground/60" />
                   </span>
                 )}

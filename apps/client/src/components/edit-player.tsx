@@ -24,6 +24,7 @@ import {
 import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
 import { validatePlayerName } from '@who-am-i/shared';
+import { useTranslation } from '@/i18n';
 
 interface EditPlayerProps {
   player: Player;
@@ -32,21 +33,17 @@ interface EditPlayerProps {
   sc: SocketController;
 }
 
-// Built-in presets with SVGs / Data-URIs for instant, fun avatar selection
-const AVATAR_PRESETS = [
-  { id: 'detective', name: 'Детектив', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=detective' },
-  { id: 'wizard', name: 'Маг', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=wizard' },
-  { id: 'robot', name: 'Робот', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=robot' },
-  { id: 'alien', name: 'Пришелец', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=alien' },
-  { id: 'ninja', name: 'Ниндзя', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=ninja' },
-  { id: 'cat', name: 'Кот', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=cat' },
-  { id: 'bear', name: 'Медведь', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=bear' },
-  { id: 'superhero', name: 'Герой', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=superhero' },
+const AVATAR_PRESET_ITEMS = [
+  { id: 'detective', key: 'presetDetective' as const, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=detective' },
+  { id: 'wizard', key: 'presetWizard' as const, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=wizard' },
+  { id: 'robot', key: 'presetRobot' as const, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=robot' },
+  { id: 'alien', key: 'presetAlien' as const, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=alien' },
+  { id: 'ninja', key: 'presetNinja' as const, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=ninja' },
+  { id: 'cat', key: 'presetCat' as const, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=cat' },
+  { id: 'bear', key: 'presetBear' as const, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=bear' },
+  { id: 'superhero', key: 'presetSuperhero' as const, url: 'https://api.dicebear.com/7.x/bottts/svg?seed=superhero' },
 ];
 
-/**
- * Resizes and compresses an image file to a lightweight data URL (max 200x200)
- */
 function compressImageToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -78,7 +75,6 @@ function compressImageToDataUrl(file: File): Promise<string> {
         }
 
         ctx.drawImage(img, 0, 0, width, height);
-        // Convert to WebP or JPEG Data URL (compact ~15-25KB)
         const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
         resolve(dataUrl);
       };
@@ -91,6 +87,7 @@ function compressImageToDataUrl(file: File): Promise<string> {
 }
 
 export default function EditPlayer({ player, open, onOpenChange, sc }: EditPlayerProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -107,7 +104,7 @@ export default function EditPlayer({ player, open, onOpenChange, sc }: EditPlaye
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      toast.error('Поддерживаются только изображения');
+      toast.error(t('onlyImagesAllowed'));
       return;
     }
 
@@ -115,9 +112,8 @@ export default function EditPlayer({ player, open, onOpenChange, sc }: EditPlaye
       setIsUploading(true);
       const compressedDataUrl = await compressImageToDataUrl(file);
       setPreviewUrl(compressedDataUrl);
-      toast.success('Изображение подготовлено');
     } catch {
-      toast.error('Не удалось обработать изображение');
+      toast.error('Failed to process image');
     } finally {
       setIsUploading(false);
     }
@@ -130,7 +126,7 @@ export default function EditPlayer({ player, open, onOpenChange, sc }: EditPlaye
   const handleSave = async () => {
     const nameValidation = validatePlayerName(name);
     if (!nameValidation.valid) {
-      toast.error(nameValidation.error || 'Пожалуйста, введите корректное имя');
+      toast.error(t('enterValidName'));
       return;
     }
 
@@ -147,7 +143,7 @@ export default function EditPlayer({ player, open, onOpenChange, sc }: EditPlaye
       }
     }
 
-    toast.success('Профиль успешно обновлен');
+    toast.success(t('profileUpdated'));
     onOpenChange(false);
   };
 
@@ -155,22 +151,22 @@ export default function EditPlayer({ player, open, onOpenChange, sc }: EditPlaye
     localStorage.removeItem('socket_id');
     localStorage.removeItem('game-name');
     localStorage.removeItem('game-avatar');
-    toast.info('Сессия сброшена');
+    toast.info(t('sessionReset'));
     navigate({ to: '/' });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" title="Редактировать профиль">
+        <Button variant="outline" size="icon" title={t('editProfile')}>
           <UserRoundPen className="size-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Редактирование профиля</DialogTitle>
+          <DialogTitle>{t('editProfile')}</DialogTitle>
           <DialogDescription>
-            Ваше имя и аватар будут видны всем участникам комнаты.
+            {t('editProfileDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -192,10 +188,10 @@ export default function EditPlayer({ player, open, onOpenChange, sc }: EditPlaye
               <Label htmlFor="avatar-file" className="cursor-pointer">
                 <div className="flex items-center gap-2 text-sm text-primary font-medium hover:underline">
                   <Upload className="size-4" />
-                  {previewUrl ? 'Загрузить другое фото' : 'Загрузить фото'}
+                  {previewUrl ? t('changeAvatar') : t('uploadAvatar')}
                 </div>
                 <span className="text-xs text-muted-foreground block mt-0.5">
-                  PNG, JPEG, WebP (автоматическое сжатие)
+                  {t('avatarFormatHint')}
                 </span>
               </Label>
               <Input
@@ -212,17 +208,17 @@ export default function EditPlayer({ player, open, onOpenChange, sc }: EditPlaye
           {/* Instant Presets */}
           <div>
             <Label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-              Или выберите готовую аватарку:
+              {t('orChoosePreset')}
             </Label>
             <div className="grid grid-cols-4 gap-2">
-              {AVATAR_PRESETS.map((preset) => {
+              {AVATAR_PRESET_ITEMS.map((preset) => {
                 const isSelected = previewUrl === preset.url;
                 return (
                   <button
                     key={preset.id}
                     type="button"
                     onClick={() => selectPreset(preset.url)}
-                    className={`relative p-1 rounded-xl border transition-all flex flex-col items-center gap-1 hover:bg-muted ${
+                    className={`relative p-1 rounded-xl border transition-all flex flex-col items-center gap-1 hover:bg-muted cursor-pointer ${
                       isSelected
                         ? 'border-primary ring-2 ring-primary/40 bg-primary/10'
                         : 'border-border bg-card'
@@ -230,11 +226,11 @@ export default function EditPlayer({ player, open, onOpenChange, sc }: EditPlaye
                   >
                     <img
                       src={preset.url}
-                      alt={preset.name}
+                      alt={t(preset.key)}
                       className="size-10 rounded-lg object-cover"
                     />
                     <span className="text-[10px] text-muted-foreground truncate w-full text-center">
-                      {preset.name}
+                      {t(preset.key)}
                     </span>
                     {isSelected && (
                       <div className="absolute top-1 right-1 size-3.5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
@@ -249,10 +245,10 @@ export default function EditPlayer({ player, open, onOpenChange, sc }: EditPlaye
 
           {/* Name Input */}
           <div className="space-y-1.5">
-            <Label htmlFor="player-name">Ваше имя в игре</Label>
+            <Label htmlFor="player-name">{t('yourNameInGame')}</Label>
             <Input
               id="player-name"
-              placeholder="Например: Шерлок"
+              placeholder={t('namePlaceholder')}
               value={name}
               maxLength={50}
               onChange={(e) => setName(e.target.value)}
@@ -264,13 +260,13 @@ export default function EditPlayer({ player, open, onOpenChange, sc }: EditPlaye
 
           {/* Connection Info */}
           <div className="p-2.5 bg-muted/50 rounded-lg text-xs text-muted-foreground flex items-center justify-between">
-            <span>ID: <span className="font-mono text-foreground">{sc.socket.id?.slice(0, 8)}...</span></span>
+            <span>{t('connectionId')}: <span className="font-mono text-foreground">{sc.socket.id?.slice(0, 8)}...</span></span>
             <button
               type="button"
               onClick={handleResetSession}
-              className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1"
+              className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 cursor-pointer"
             >
-              <RefreshCw className="size-3" /> Сбросить ID
+              <RefreshCw className="size-3" /> {t('resetSessionId')}
             </button>
           </div>
         </div>
@@ -284,10 +280,10 @@ export default function EditPlayer({ player, open, onOpenChange, sc }: EditPlaye
           >
             {isUploading ? (
               <>
-                <Loader2 className="size-4 mr-2 animate-spin" /> Обработка...
+                <Loader2 className="size-4 mr-2 animate-spin" /> {t('processing')}
               </>
             ) : (
-              'Сохранить'
+              t('save')
             )}
           </Button>
         </DialogFooter>

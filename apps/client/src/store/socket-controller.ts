@@ -18,6 +18,7 @@ export class SocketController {
   readonly gameStore: GameStore;
   readonly socket: PartySocket;
   private isDestroyed = false;
+  private messageQueue: TEvent[] = [];
 
   constructor(gameStore: GameStore, room: string) {
     const savedSocketId = localStorage.getItem('socket_id');
@@ -42,6 +43,25 @@ export class SocketController {
         this.gameStore.setMyId(this.socket.id);
         localStorage.setItem('socket_id', this.socket.id);
       }
+
+      // Automatically sync saved profile from localStorage upon entering any room
+      const savedName = localStorage.getItem('game-name');
+      const savedAvatar = localStorage.getItem('game-avatar');
+
+      if (savedName && savedName.trim()) {
+        this.sendMyName(savedName.trim());
+      }
+      if (savedAvatar) {
+        this.sendMyAvatar(savedAvatar);
+      }
+
+      // Flush queued messages if any
+      while (this.messageQueue.length > 0) {
+        const msg = this.messageQueue.shift();
+        if (msg) {
+          this.socket.send(JSON.stringify(msg));
+        }
+      }
     });
 
     this.socket.addEventListener('message', (event: MessageEvent) => {
@@ -57,6 +77,8 @@ export class SocketController {
       switch (event.type) {
         case 'sync':
           this.gameStore.onSync(event);
+          // If my player was synced with empty name or avatar but we have saved profile, send it
+          this.syncLocalProfileIfEmpty();
           break;
         case 'connect':
           this.gameStore.onConnect(event);
@@ -91,6 +113,21 @@ export class SocketController {
       }
     } catch (err) {
       console.error('[SocketController] Error parsing message:', err);
+    }
+  }
+
+  private syncLocalProfileIfEmpty(): void {
+    const me = this.gameStore.me;
+    if (!me) return;
+
+    const savedName = localStorage.getItem('game-name');
+    const savedAvatar = localStorage.getItem('game-avatar');
+
+    if (savedName && (!me.name || me.name !== savedName)) {
+      this.sendMyName(savedName);
+    }
+    if (savedAvatar && (!me.avatar || me.avatar !== savedAvatar)) {
+      this.sendMyAvatar(savedAvatar);
     }
   }
 
@@ -160,6 +197,8 @@ export class SocketController {
       newName: name,
     };
     this.send(event);
+    const me = this.gameStore.me;
+    if (me) me.setName(name);
   }
 
   public sendMyAvatar(link: string | null): void {
@@ -169,6 +208,8 @@ export class SocketController {
       avatar: link,
     };
     this.send(event);
+    const me = this.gameStore.me;
+    if (me) me.setAvatar(link);
   }
 
   public async uploadImg(formData: FormData): Promise<string> {
@@ -191,7 +232,7 @@ export class SocketController {
         }
       }
     } catch {
-      // Fallback handled by caller (client-side base64 compression)
+      // Fallback handled by caller
     }
     throw new Error('Upload fallback');
   }
@@ -199,6 +240,8 @@ export class SocketController {
   private send(event: TEvent): void {
     if (this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(event));
+    } else {
+      this.messageQueue.push(event);
     }
   }
 

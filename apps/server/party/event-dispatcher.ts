@@ -57,6 +57,7 @@ export class GameEventDispatcher {
           const turnEvent: TEventSetTurn = {
             type: 'set_turn',
             id: res.data.nextTurnPlayerId ?? '',
+            round: this.roomState.getState().round,
           };
           this.broadcast(turnEvent);
         }
@@ -112,6 +113,7 @@ export class GameEventDispatcher {
         const turnEvent: TEventSetTurn = {
           type: 'set_turn',
           id: res.data.nextTurnPlayerId,
+          round: this.roomState.getState().round,
         };
         this.broadcast(turnEvent);
       }
@@ -142,6 +144,7 @@ export class GameEventDispatcher {
       const turnEvent: TEventSetTurn = {
         type: 'set_turn',
         id: conn.id,
+        round: this.roomState.getState().round,
       };
       this.broadcast(adminEvent);
       this.broadcast(turnEvent);
@@ -168,6 +171,7 @@ export class GameEventDispatcher {
       const turnEvent: TEventSetTurn = {
         type: 'set_turn',
         id: newTurnPlayerId,
+        round: this.roomState.getState().round,
       };
       this.broadcast(turnEvent);
     }
