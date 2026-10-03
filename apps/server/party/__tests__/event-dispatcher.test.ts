@@ -88,7 +88,7 @@ describe('GameEventDispatcher', () => {
     await dispatcher.dispatch(editGameNameEvent, mockConnection1);
 
     expect(roomState.getPlayer('conn-2')?.gameName).toBe('Sherlock Holmes');
-    expect(mockRoom.broadcast).toHaveBeenCalledWith(editGameNameEvent, ['conn-1']);
+    expect(mockRoom.broadcast).toHaveBeenCalledWith(editGameNameEvent, []);
   });
 
   it('handles player disconnect and promotes new admin if admin left', () => {

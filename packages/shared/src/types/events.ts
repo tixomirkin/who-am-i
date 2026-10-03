@@ -1,4 +1,4 @@
-import type { TGameState } from './game';
+import type { TGameState, TGameSettings } from './game';
 
 export interface TEventSync {
   type: 'sync';
@@ -68,6 +68,12 @@ export interface TEventSetTurn {
   id: string;
 }
 
+export interface TEventUpdateSettings {
+  type: 'update_settings';
+  id: string;
+  settings: Partial<TGameSettings>;
+}
+
 export type TEvent =
   | TEventSync
   | TEventEntTurn
@@ -81,4 +87,5 @@ export type TEvent =
   | TEventConnect
   | TEventGetSync
   | TEventEditMyAvatar
-  | TEventSetTurn;
+  | TEventSetTurn
+  | TEventUpdateSettings;

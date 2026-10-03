@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import type { Player } from '@/store/game';
 import type { SocketController } from '@/store/socket-controller';
-import { useDebounce } from 'use-debounce';
+import { useGameStore } from '@/hooks/useGameStore';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Crown, Play, LogOut, HelpCircle } from 'lucide-react';
+import { Crown, Play, LogOut, HelpCircle, Lock } from 'lucide-react';
+import { canAssignCharacter } from '@who-am-i/shared';
 
 interface PlayerViewProps {
   player: Player;
@@ -15,21 +16,40 @@ interface PlayerViewProps {
 }
 
 export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps) => {
+  const gameStore = useGameStore();
   const isMe = me.id === player.id;
-  const [gameName, setGameName] = useState<string>(player.gameName);
-  const [debouncedGameName] = useDebounce(gameName, 300);
+  const canEdit = gameStore.canEditCharacterFor(player.id);
 
-  // Sync with store updates if another player changed the gameName
+  const [localGameName, setLocalGameName] = useState<string>(player.gameName);
+  const isFocusedRef = useRef(false);
+
+  // Sync local text when store updates from other players (if user isn't actively typing)
   useEffect(() => {
-    setGameName(player.gameName);
+    if (!isFocusedRef.current) {
+      setLocalGameName(player.gameName);
+    }
   }, [player.gameName]);
 
-  // Send debounced update to room
-  useEffect(() => {
-    if (!isMe && !me.isSpectator && debouncedGameName !== player.gameName) {
-      sc.sendEditGameName(player.id, debouncedGameName);
+  const handleTextChange = (value: string) => {
+    setLocalGameName(value);
+    sc.sendEditGameName(player.id, value);
+  };
+
+  const getPlaceholderText = () => {
+    if (isMe) return 'Ваш персонаж';
+    if (!canEdit) {
+      const mode = gameStore.settings.assignmentMode;
+      if (mode === 'admin_only') return 'Загадывает ведущий';
+      if (mode === 'neighbor_right' || mode === 'neighbor_left') {
+        const author = gameStore.activePlayers.find((activeP) =>
+          canAssignCharacter(activeP.id, player.id, gameStore.toGameState())
+        );
+        return author ? `Загадывает ${author.displayName}` : 'Заблокировано';
+      }
+      return 'Только для игроков';
     }
-  }, [debouncedGameName, player.id, isMe, me.isSpectator, player.gameName, sc]);
+    return player.gameName ? player.gameName : 'Загадайте персонажа...';
+  };
 
   return (
     <div
@@ -119,16 +139,31 @@ export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps)
             </div>
           ) : (
             <div className="space-y-1">
-              <label className="text-[11px] uppercase tracking-wider text-muted-foreground block text-left">
-                Загаданный персонаж
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] uppercase tracking-wider text-muted-foreground block text-left">
+                  Загаданный персонаж
+                </label>
+                {!canEdit && (
+                  <span title="Редактирование недоступно">
+                    <Lock className="size-3 text-muted-foreground/60" />
+                  </span>
+                )}
+              </div>
               <Textarea
-                className="resize-none h-16 text-sm text-center leading-snug rounded-lg"
-                disabled={me.isSpectator}
-                value={gameName}
-                placeholder={me.isSpectator ? 'Только для игроков' : 'Загадайте персонажа...'}
+                className={`resize-none h-16 text-sm text-center leading-snug rounded-lg transition-colors ${
+                  !canEdit ? 'bg-muted/50 cursor-not-allowed opacity-80' : ''
+                }`}
+                disabled={!canEdit}
+                value={canEdit ? localGameName : player.gameName}
+                placeholder={getPlaceholderText()}
                 maxLength={50}
-                onChange={(e) => setGameName(e.target.value)}
+                onFocus={() => {
+                  isFocusedRef.current = true;
+                }}
+                onBlur={() => {
+                  isFocusedRef.current = false;
+                }}
+                onChange={(e) => handleTextChange(e.target.value)}
               />
             </div>
           )}

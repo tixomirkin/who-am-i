@@ -8,6 +8,8 @@ import type {
   TEventJoin,
   TEventSetAdmin,
   TEventSpectator,
+  TEventUpdateSettings,
+  TGameSettings,
 } from '@who-am-i/shared';
 import PartySocket from 'partysocket';
 import type { GameStore } from './game';
@@ -83,6 +85,9 @@ export class SocketController {
         case 'set_turn':
           this.gameStore.onSetTurn(event);
           break;
+        case 'update_settings':
+          this.gameStore.onUpdateSettings(event);
+          break;
       }
     } catch (err) {
       console.error('[SocketController] Error parsing message:', err);
@@ -95,6 +100,16 @@ export class SocketController {
       id: targetId,
     };
     this.send(event);
+  }
+
+  public sendUpdateSettings(settings: Partial<TGameSettings>): void {
+    const event: TEventUpdateSettings = {
+      type: 'update_settings',
+      id: this.socket.id,
+      settings,
+    };
+    this.send(event);
+    this.gameStore.onUpdateSettings(event);
   }
 
   public sendEndTurn(): void {
@@ -147,7 +162,7 @@ export class SocketController {
     this.send(event);
   }
 
-  public sendMyAvatar(link: string): void {
+  public sendMyAvatar(link: string | null): void {
     const event: TEventEditMyAvatar = {
       type: 'edit_my_avatar',
       id: this.socket.id,
@@ -157,24 +172,28 @@ export class SocketController {
   }
 
   public async uploadImg(formData: FormData): Promise<string> {
-    const res = await PartySocket.fetch(
-      {
-        host: this.socket.host,
-        room: this.socket.room || '',
-      },
-      {
-        method: 'POST',
-        body: formData,
+    try {
+      const res = await PartySocket.fetch(
+        {
+          host: this.socket.host,
+          room: this.socket.room || '',
+        },
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      if (res.ok) {
+        const data = (await res.json()) as { link?: string; url?: string };
+        if (data.link || data.url) {
+          return data.link || data.url || '';
+        }
       }
-    );
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: 'Upload failed' }));
-      throw new Error(err.error || `HTTP ${res.status}`);
+    } catch {
+      // Fallback handled by caller (client-side base64 compression)
     }
-
-    const data = (await res.json()) as { link: string };
-    return data.link;
+    throw new Error('Upload fallback');
   }
 
   private send(event: TEvent): void {

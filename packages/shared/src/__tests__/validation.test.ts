@@ -5,6 +5,7 @@ import {
   validateDescription,
   validateRoomId,
   validateAvatarFile,
+  canAssignCharacter,
 } from '../validation';
 
 describe('Shared Validation Utils', () => {
@@ -79,6 +80,50 @@ describe('Shared Validation Utils', () => {
     it('accepts valid image within size limit', () => {
       const res = validateAvatarFile({ size: 500 * 1024, type: 'image/png' });
       expect(res.valid).toBe(true);
+    });
+  });
+
+  describe('canAssignCharacter game modes', () => {
+    const createTestState = (mode: any) => ({
+      players: [
+        { id: 'p1', name: 'P1', gameName: '', description: '', isAdmin: true, isSpectator: false, avatar: null },
+        { id: 'p2', name: 'P2', gameName: '', description: '', isAdmin: false, isSpectator: false, avatar: null },
+        { id: 'p3', name: 'P3', gameName: '', description: '', isAdmin: false, isSpectator: false, avatar: null },
+        { id: 'spec', name: 'Spec', gameName: '', description: '', isAdmin: false, isSpectator: true, avatar: null },
+      ],
+      round: 0,
+      turnPlayerId: 'p1',
+      settings: { assignmentMode: mode, allowSpectatorViewing: true },
+    });
+
+    it('free mode: any active player can assign to any other active player', () => {
+      const state = createTestState('free');
+      expect(canAssignCharacter('p1', 'p2', state)).toBe(true);
+      expect(canAssignCharacter('p2', 'p1', state)).toBe(true);
+      expect(canAssignCharacter('p1', 'p1', state)).toBe(false); // cannot assign self
+      expect(canAssignCharacter('spec', 'p1', state)).toBe(false); // spectator cannot assign
+    });
+
+    it('admin_only mode: only admin can assign to active players', () => {
+      const state = createTestState('admin_only');
+      expect(canAssignCharacter('p1', 'p2', state)).toBe(true);
+      expect(canAssignCharacter('p2', 'p3', state)).toBe(false);
+    });
+
+    it('neighbor_right mode: players assign to the player to their right (next in circle)', () => {
+      const state = createTestState('neighbor_right');
+      expect(canAssignCharacter('p1', 'p2', state)).toBe(true);
+      expect(canAssignCharacter('p2', 'p3', state)).toBe(true);
+      expect(canAssignCharacter('p3', 'p1', state)).toBe(true);
+      expect(canAssignCharacter('p1', 'p3', state)).toBe(false);
+    });
+
+    it('neighbor_left mode: players assign to the player to their left (previous in circle)', () => {
+      const state = createTestState('neighbor_left');
+      expect(canAssignCharacter('p1', 'p3', state)).toBe(true);
+      expect(canAssignCharacter('p3', 'p2', state)).toBe(true);
+      expect(canAssignCharacter('p2', 'p1', state)).toBe(true);
+      expect(canAssignCharacter('p1', 'p2', state)).toBe(false);
     });
   });
 });

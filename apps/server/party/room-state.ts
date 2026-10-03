@@ -1,8 +1,10 @@
-import type { TGameState, TPlayer } from '@who-am-i/shared';
+import type { TGameState, TPlayer, TGameSettings } from '@who-am-i/shared';
 import {
   validatePlayerName,
   validateGameName,
   validateDescription,
+  canAssignCharacter,
+  DEFAULT_GAME_SETTINGS,
 } from '@who-am-i/shared';
 
 export interface StateChangeResult<T = void> {
@@ -20,6 +22,7 @@ export class RoomStateManager {
     players: [],
     round: 0,
     turnPlayerId: null,
+    settings: { ...DEFAULT_GAME_SETTINGS },
   };
 
   constructor(initialState?: Partial<TGameState>) {
@@ -28,6 +31,7 @@ export class RoomStateManager {
         players: initialState.players ?? [],
         round: initialState.round ?? 0,
         turnPlayerId: initialState.turnPlayerId ?? null,
+        settings: { ...DEFAULT_GAME_SETTINGS, ...(initialState.settings ?? {}) },
       };
     }
   }
@@ -37,6 +41,7 @@ export class RoomStateManager {
       players: this.state.players.map((p) => ({ ...p })),
       round: this.state.round,
       turnPlayerId: this.state.turnPlayerId,
+      settings: { ...this.state.settings },
     };
   }
 
@@ -113,7 +118,6 @@ export class RoomStateManager {
     // Reassign admin if needed
     let newAdminId: string | null = null;
     if (wasAdmin && this.state.players.length > 0) {
-      // Prefer assigning admin to an active player first, otherwise first spectator
       const activePlayers = this.getActivePlayers();
       const nextAdmin = activePlayers.length > 0 ? activePlayers[0] : this.state.players[0];
       nextAdmin.isAdmin = true;
@@ -165,10 +169,7 @@ export class RoomStateManager {
 
   /**
    * Assign character/secret name to another player.
-   * Invariants:
-   * - Both fromPlayer and toPlayer must exist
-   * - Neither player can be a spectator
-   * - Player cannot set their own character name
+   * Checks room rules and assignment mode (free, neighbor_right, neighbor_left, admin_only).
    */
   public setGameName(fromId: string, toId: string, newGameName: string): StateChangeResult {
     const validation = validateGameName(newGameName);
@@ -191,8 +192,32 @@ export class RoomStateManager {
       return { success: false, error: 'Spectators cannot assign or receive character names' };
     }
 
+    if (!canAssignCharacter(fromId, toId, this.state)) {
+      return {
+        success: false,
+        error: 'Character assignment not allowed for this player under current game settings',
+      };
+    }
+
     toPlayer.gameName = newGameName;
     return { success: true };
+  }
+
+  public updateSettings(
+    senderId: string,
+    newSettings: Partial<TGameSettings>
+  ): StateChangeResult<TGameSettings> {
+    const player = this.getPlayer(senderId);
+    if (!player || !player.isAdmin) {
+      return { success: false, error: 'Only admin can modify game settings' };
+    }
+
+    this.state.settings = {
+      ...this.state.settings,
+      ...newSettings,
+    };
+
+    return { success: true, data: { ...this.state.settings } };
   }
 
   public joinGame(id: string): StateChangeResult {
@@ -203,7 +228,6 @@ export class RoomStateManager {
 
     player.isSpectator = false;
 
-    // If there is currently no active turn player, set to this player
     if (!this.state.turnPlayerId) {
       this.state.turnPlayerId = id;
     }

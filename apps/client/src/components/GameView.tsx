@@ -6,6 +6,7 @@ import { PlayerView } from '@/components/PlayerView';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/mode-toggle';
 import EditPlayer from '@/components/edit-player';
+import { GameSettingsDialog } from '@/components/game-settings-dialog';
 import {
   Plus,
   RefreshCw,
@@ -16,6 +17,7 @@ import {
   Crown,
   Sparkles,
   ArrowLeft,
+  RotateCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from '@tanstack/react-router';
@@ -27,6 +29,7 @@ interface GameViewProps {
 export const GameView = observer(({ sc }: GameViewProps) => {
   const gameStore = useGameStore();
   const [editOpen, setEditOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const me = gameStore.me;
@@ -53,6 +56,19 @@ export const GameView = observer(({ sc }: GameViewProps) => {
     }
   };
 
+  const getModeLabel = () => {
+    switch (gameStore.settings.assignmentMode) {
+      case 'neighbor_right':
+        return 'Режим: Соседу справа ➡️';
+      case 'neighbor_left':
+        return 'Режим: Соседу слева ⬅️';
+      case 'admin_only':
+        return 'Режим: Загадывает ведущий 👑';
+      default:
+        return null;
+    }
+  };
+
   if (!me) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -63,6 +79,8 @@ export const GameView = observer(({ sc }: GameViewProps) => {
       </div>
     );
   }
+
+  const modeBadge = getModeLabel();
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col justify-between">
@@ -88,21 +106,34 @@ export const GameView = observer(({ sc }: GameViewProps) => {
             </div>
           </div>
 
-          {/* Turn Banner */}
-          {activePlayers.length > 0 && turnPlayer && (
-            <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
-              <Sparkles className="size-3.5 animate-pulse" />
-              <span>
-                Сейчас ходит:{' '}
-                <strong className="font-semibold">
-                  {turnPlayer.id === me.id ? 'Вы' : turnPlayer.displayName}
-                </strong>
+          {/* Turn Banner / Mode Banner */}
+          <div className="hidden md:flex items-center gap-2">
+            {modeBadge && (
+              <span className="px-2.5 py-0.5 rounded-full bg-muted text-xs text-muted-foreground border border-border">
+                {modeBadge}
               </span>
-            </div>
-          )}
+            )}
+
+            {activePlayers.length > 0 && turnPlayer && (
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+                <Sparkles className="size-3.5 animate-pulse" />
+                <span>
+                  Сейчас ходит:{' '}
+                  <strong className="font-semibold">
+                    {turnPlayer.id === me.id ? 'Вы' : turnPlayer.displayName}
+                  </strong>
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            <GameSettingsDialog
+              sc={sc}
+              open={settingsOpen}
+              onOpenChange={setSettingsOpen}
+            />
             <EditPlayer player={me} open={editOpen} onOpenChange={setEditOpen} sc={sc} />
             <Button
               onClick={() => sc.sendSync()}
@@ -150,7 +181,7 @@ export const GameView = observer(({ sc }: GameViewProps) => {
             {me.isSpectator && (
               <button
                 onClick={() => sc.sendJoin()}
-                className="flex flex-col items-center justify-center gap-3 w-56 min-h-[320px] rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-all text-primary font-medium hover:border-primary p-6"
+                className="flex flex-col items-center justify-center gap-3 w-56 min-h-[320px] rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-all text-primary font-medium hover:border-primary p-6 cursor-pointer"
               >
                 <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center">
                   <Plus className="size-6" />
@@ -184,8 +215,10 @@ export const GameView = observer(({ sc }: GameViewProps) => {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <span>Раунд {gameStore.round + 1}</span>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1 font-medium text-foreground">
+              <RotateCw className="size-3 text-primary" /> Круг: {gameStore.round + 1}
+            </span>
             {me.isAdmin && (
               <span className="flex items-center gap-1 text-amber-500 font-medium">
                 <Crown className="size-3" /> Вы админ

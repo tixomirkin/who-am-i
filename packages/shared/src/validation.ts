@@ -1,4 +1,5 @@
 import { GAME_LIMITS, ALLOWED_IMAGE_MIME_TYPES } from './constants';
+import type { TGameState } from './types/game';
 
 export interface ValidationResult {
   valid: boolean;
@@ -69,4 +70,52 @@ export function validateAvatarFile(file: { size: number; type: string }): Valida
     return { valid: false, error: `File size cannot exceed ${sizeInMb}MB` };
   }
   return { valid: true };
+}
+
+/**
+ * Checks if `fromPlayerId` is allowed to edit/assign the character for `toPlayerId`
+ * based on current game settings and active players.
+ */
+export function canAssignCharacter(
+  fromPlayerId: string,
+  toPlayerId: string,
+  gameState: TGameState
+): boolean {
+  if (fromPlayerId === toPlayerId) return false;
+
+  const fromPlayer = gameState.players.find((p) => p.id === fromPlayerId);
+  const toPlayer = gameState.players.find((p) => p.id === toPlayerId);
+
+  if (!fromPlayer || !toPlayer) return false;
+  if (fromPlayer.isSpectator || toPlayer.isSpectator) return false;
+
+  const mode = gameState.settings?.assignmentMode || 'free';
+  const activePlayers = gameState.players.filter((p) => !p.isSpectator);
+
+  if (mode === 'free') {
+    return true;
+  }
+
+  if (mode === 'admin_only') {
+    return Boolean(fromPlayer.isAdmin);
+  }
+
+  const fromIndex = activePlayers.findIndex((p) => p.id === fromPlayerId);
+  const toIndex = activePlayers.findIndex((p) => p.id === toPlayerId);
+
+  if (fromIndex === -1 || toIndex === -1) return false;
+
+  if (mode === 'neighbor_right') {
+    // Next player in circle (to the right)
+    const expectedTargetIndex = (fromIndex + 1) % activePlayers.length;
+    return toIndex === expectedTargetIndex;
+  }
+
+  if (mode === 'neighbor_left') {
+    // Previous player in circle (to the left)
+    const expectedTargetIndex = (fromIndex - 1 + activePlayers.length) % activePlayers.length;
+    return toIndex === expectedTargetIndex;
+  }
+
+  return false;
 }

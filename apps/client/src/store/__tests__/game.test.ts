@@ -41,6 +41,7 @@ describe('GameStore (MobX)', () => {
       ],
       round: 2,
       turnPlayerId: 'user-1',
+      settings: { assignmentMode: 'free', allowSpectatorViewing: true },
     };
 
     store.setMyId('user-1');
@@ -54,6 +55,16 @@ describe('GameStore (MobX)', () => {
     expect(store.isGameAdmin).toBe(true);
     expect(store.turnPlayer?.name).toBe('Alice');
     expect(store.round).toBe(2);
+    expect(store.settings.assignmentMode).toBe('free');
+  });
+
+  it('handles update_settings event', () => {
+    store.onUpdateSettings({
+      type: 'update_settings',
+      id: 'admin',
+      settings: { assignmentMode: 'neighbor_right' },
+    });
+    expect(store.settings.assignmentMode).toBe('neighbor_right');
   });
 
   it('handles player joining game and switching to spectator', () => {

@@ -12,6 +12,7 @@ import type {
   TEventSetTurn,
   TEventSpectator,
   TEventSync,
+  TEventUpdateSettings,
 } from '@who-am-i/shared';
 import type { RoomStateManager } from './room-state';
 
@@ -84,16 +85,22 @@ export class GameEventDispatcher {
     });
 
     this.handlers.set('edit_game_name', (event: TEventEditGameName, sender) => {
-      if (event.id !== sender.id) return;
       const res = this.roomState.setGameName(sender.id, event.toId, event.newGameName);
       if (res.success) {
-        // Broadcast to everyone except sender (sender handles optimistic UI update)
-        this.room.broadcast(JSON.stringify(event), [sender.id]);
+        // Broadcast to all players so character changes update simultaneously across all screens
+        this.broadcast(event);
       }
     });
 
     this.handlers.set('set_admin', (event: TEventSetAdmin, sender) => {
       const res = this.roomState.setAdmin(sender.id, event.id);
+      if (res.success) {
+        this.broadcast(event);
+      }
+    });
+
+    this.handlers.set('update_settings', (event: TEventUpdateSettings, sender) => {
+      const res = this.roomState.updateSettings(sender.id, event.settings);
       if (res.success) {
         this.broadcast(event);
       }

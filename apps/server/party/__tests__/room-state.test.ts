@@ -169,4 +169,34 @@ describe('RoomStateManager', () => {
       expect(res.success).toBe(false);
     });
   });
+
+  describe('Game Settings & Assignment Modes', () => {
+    beforeEach(() => {
+      room.addPlayer('p1');
+      room.addPlayer('p2');
+      room.addPlayer('p3');
+      room.joinGame('p1');
+      room.joinGame('p2');
+      room.joinGame('p3');
+    });
+
+    it('allows admin to update room settings', () => {
+      const res = room.updateSettings('p1', { assignmentMode: 'neighbor_right' });
+      expect(res.success).toBe(true);
+      expect(room.getState().settings.assignmentMode).toBe('neighbor_right');
+    });
+
+    it('rejects non-admin from updating room settings', () => {
+      const res = room.updateSettings('p2', { assignmentMode: 'admin_only' });
+      expect(res.success).toBe(false);
+    });
+
+    it('enforces neighbor_right mode in setGameName', () => {
+      room.updateSettings('p1', { assignmentMode: 'neighbor_right' });
+      // p1 -> p2 is valid
+      expect(room.setGameName('p1', 'p2', 'Batman').success).toBe(true);
+      // p1 -> p3 is invalid in neighbor_right
+      expect(room.setGameName('p1', 'p3', 'Superman').success).toBe(false);
+    });
+  });
 });
