@@ -15,9 +15,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
-import { Sparkles, ArrowRight, Gamepad2, User } from 'lucide-react';
+import { Sparkles, ArrowRight, User } from 'lucide-react';
 import { validateRoomId } from '@who-am-i/shared';
 import { useTranslation } from '@/i18n';
+import icon from '@/assets/favicon.svg';
 
 export const Route = createFileRoute('/')({
   component: LandingRouteComponent,
@@ -64,8 +65,8 @@ function LandingRouteComponent() {
     <main className="bg-background min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-border/80">
         <CardHeader className="text-center space-y-2 pb-4">
-          <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-1">
-            <Gamepad2 className="size-7" />
+          <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-1 p-2">
+            <img src={icon} alt="Logo" className="size-8" />
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">{t('appName')}</CardTitle>
           <CardDescription className="text-sm">

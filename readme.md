@@ -32,7 +32,7 @@
 Each player is assigned a secret character by their opponents. Everyone can see who other players are, but your own character remains hidden! Players take turns asking questions, making deductions, and trying to guess their secret identity before anyone else.
 
 <div align="center">
-  <img src="https://i.imgur.com/aXjeatO.png" alt="Gameplay Preview" width="100%" />
+  <img src="https://i.imgur.com/M8Ajy3g.png" alt="Gameplay Preview" width="100%" />
 </div>
 
 ---
