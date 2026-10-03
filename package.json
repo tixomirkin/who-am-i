@@ -1,0 +1,20 @@
+{
+  "name": "who-am-i-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --parallel --filter who-am-i-client --filter who-am-i-server dev",
+    "dev:client": "pnpm --filter who-am-i-client dev",
+    "dev:server": "pnpm --filter who-am-i-server dev",
+    "build": "pnpm -r --filter=!@who-am-i/shared build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.7"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "who-am-i-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "partykit dev --live",
+    "deploy": "partykit deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@who-am-i/shared": "workspace:*",
+    "partysocket": "^1.0.2"
+  },
+  "devDependencies": {
+    "partykit": "^0.0.110",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.7"
+  }
+}
