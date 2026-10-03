@@ -10,7 +10,7 @@ export const en: Translations = {
   copyFailed: 'Failed to copy link',
   syncState: 'Sync room state',
   connecting: 'Connecting to room...',
-  madeWithLove: 'Made with ❤️ for Discord',
+  madeWithLove: 'Made by tixomirkin ❤️',
   circleCounter: 'Round',
   currentTurn: 'Current turn',
   yourTurn: 'You',

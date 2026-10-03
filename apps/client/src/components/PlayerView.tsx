@@ -55,14 +55,14 @@ export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps)
 
   return (
     <div
-      className={`relative flex flex-col w-56 rounded-2xl overflow-hidden bg-card border transition-all duration-300 ${
+      className={`relative flex flex-col w-full max-w-[280px] xs:w-52 sm:w-56 rounded-2xl overflow-hidden bg-card border transition-all duration-300 ${
         isTurn
           ? 'border-primary ring-2 ring-primary/40 shadow-lg shadow-primary/10 scale-[1.02]'
           : 'border-border shadow-sm hover:shadow-md'
       }`}
     >
       {/* Header / Avatar Area */}
-      <div className="relative w-full h-44 bg-muted flex items-center justify-center overflow-hidden">
+      <div className="relative w-full h-40 sm:h-44 bg-muted flex items-center justify-center overflow-hidden">
         {player.avatar ? (
           <img
             src={player.avatar}
@@ -77,8 +77,8 @@ export const PlayerView = observer(({ me, isTurn, player, sc }: PlayerViewProps)
 
         {/* Turn Status Overlay Badge */}
         {isTurn && (
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1 shadow">
-            <Play className="size-3 fill-current" /> {t('circleCounter')}
+          <div className="absolute top-2 left-2 p-1.5  rounded-full bg-primary text-primary-foreground  shadow">
+            <Play className="size-3.5 fill-current" />
           </div>
         )}
 

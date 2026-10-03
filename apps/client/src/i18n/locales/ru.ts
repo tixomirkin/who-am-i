@@ -10,7 +10,7 @@ export const ru: Translations = {
   copyFailed: 'Не удалось скопировать ссылку',
   syncState: 'Синхронизировать состояние',
   connecting: 'Подключение к комнате...',
-  madeWithLove: 'Сделано с ❤️ для Discord',
+  madeWithLove: 'Made by tixomirkin ❤️',
   circleCounter: 'Круг',
   currentTurn: 'Сейчас ходит',
   yourTurn: 'Вы',
